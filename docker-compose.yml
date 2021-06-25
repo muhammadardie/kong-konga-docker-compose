@@ -14,7 +14,7 @@ services:
     networks:
       - kong-net
     volumes:
-      - ./data-kongdb:/var/lib/postgresql/data"
+      - ./kongdb-data:/var/lib/postgresql/data
 
   kong-migrations:
     image: kong
@@ -58,17 +58,38 @@ services:
       - kong-net
     depends_on:
       - kong-migrations
+  
+  konga-prepare:
+    image: pantsel/konga:next
+    command: "-c prepare -a postgres -u postgresql://kong:kong@kong-database:5432/konga_db"
+    networks:
+      - kong-net
+    restart: on-failure
+    links:
+      - kong-database
+    depends_on:
+      - kong-database
 
   konga:
-    image: pantsel/konga
+    image: pantsel/konga:next
+    restart: always
     ports:
       - 1337:1337
-    links:
-      - kong:kong
     container_name: konga
     environment:
+      - DB_ADAPTER=postgres
+      - DB_HOST=kong-database
+      - DB_USER=kong
+      - TOKEN_SECRET=km1GUr4RkcQD7DewhJPNXrCuZwcKmqjb
+      - DB_DATABASE=konga_db
+      - DB_PASSWORD=kong
       - NODE_ENV=production
+    networks:
+      - kong-net
+    depends_on:
+      - kong-database
 
 networks:
   kong-net:
+    name: kong-net
     external: false
