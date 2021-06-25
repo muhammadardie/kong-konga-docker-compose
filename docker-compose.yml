@@ -14,7 +14,7 @@ services:
     networks:
       - kong-net
     volumes:
-      - "db-data-kong-postgres:/var/lib/postgresql/data"
+      - ./data-kongdb:/var/lib/postgresql/data"
 
   kong-migrations:
     image: kong
@@ -50,8 +50,8 @@ services:
     ports:
       - 8000:8000
       - 8443:8443
-      - 8001:8001
-      - 8444:8444
+      - 127.0.0.1:8001:8001
+      - 127.0.0.1:8444:8444
     links:
       - kong-database:kong-database
     networks:
@@ -68,9 +68,6 @@ services:
     container_name: konga
     environment:
       - NODE_ENV=production
-
-volumes:
-  db-data-kong-postgres:
 
 networks:
   kong-net:
